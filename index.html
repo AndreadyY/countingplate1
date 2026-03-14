@@ -3,35 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>寿司计算器 - 万能版</title>
+    <title>寿司计算器 - 最终版</title>
     
     <script src="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/react/18.2.0/umd/react.production.min.js"></script>
     <script src="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    
     <script src="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/babel-standalone/6.26.0/babel.min.js"></script>
     
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/lucide/0.263.0/umd/lucide.min.js"></script>
-    <script src="https://unpkg.com/lucide-react@0.263.0/dist/umd/lucide-react.min.js"></script>
+    <script src="https://unpkg.com/lucide@0.263.0/dist/umd/lucide.min.js"></script>
 
     <style>
-        /* 修复一些移动端点击阴影 */
         * { -webkit-tap-highlight-color: transparent; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        body { background-color: #f8fafc; margin: 0; }
+        #root { min-height: 100vh; }
     </style>
 </head>
 <body>
-    <div id="root"></div>
+    <div id="root">
+        <div class="flex items-center justify-center h-screen text-slate-400 animate-pulse">
+            🍣 正在准备餐具中...
+        </div>
+    </div>
 
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
-        const { 
-            RefreshCcw, Plus, Minus, Users, Receipt, 
-            Flame, Settings, Edit3, Trash2, Check, 
-            Palette, Save, Store, PlusCircle 
-        } = lucideReact;
 
-        // 预设颜色调色板
+        // 这里是手动从全局 lucide 对象解构图标，防止报错
+        const Icons = {
+            RefreshCcw: () => <i data-lucide="refresh-ccw"></i>,
+            Plus: () => <i data-lucide="plus"></i>,
+            Minus: () => <i data-lucide="minus"></i>,
+            Users: () => <i data-lucide="users"></i>,
+            Receipt: () => <i data-lucide="receipt"></i>,
+            Flame: () => <i data-lucide="flame"></i>,
+            Settings: () => <i data-lucide="settings"></i>,
+            Check: () => <i data-lucide="check"></i>,
+            Store: () => <i data-lucide="store"></i>
+        };
+
         const COLOR_PALETTE = [
             { bg: 'bg-red-500', text: 'text-red-600', border: 'border-red-200' },
             { bg: 'bg-blue-500', text: 'text-blue-600', border: 'border-blue-200' },
@@ -43,131 +54,95 @@
             { bg: 'bg-white', text: 'text-slate-700', border: 'border-slate-300' },
         ];
 
-        const DEFAULT_TEMPLATES = [
-            {
-                id: 'sushiro', name: '🍣 寿司郎 Sushiro', serviceRate: 0.1,
-                plates: [
-                    { id: 1, name: '红盘', price: 12, calories: 120, colorIndex: 0, count: 0 },
-                    { id: 2, name: '银盘', price: 17, calories: 150, colorIndex: 2, count: 0 },
-                    { id: 3, name: '金盘', price: 22, calories: 180, colorIndex: 3, count: 0 },
-                    { id: 4, name: '黑盘', price: 27, calories: 200, colorIndex: 4, count: 0 },
-                    { id: 5, name: '大盘/特选', price: 32, calories: 250, colorIndex: 7, count: 0 },
-                ]
-            }
+        const DEFAULT_PLATES = [
+            { id: 1, name: '红盘', price: 12, calories: 120, colorIndex: 0, count: 0 },
+            { id: 2, name: '银盘', price: 17, calories: 150, colorIndex: 2, count: 0 },
+            { id: 3, name: '金盘', price: 22, calories: 180, colorIndex: 3, count: 0 },
+            { id: 4, name: '黑盘', price: 27, calories: 200, colorIndex: 4, count: 0 },
+            { id: 5, name: '大盘/特选', price: 32, calories: 250, colorIndex: 7, count: 0 },
         ];
 
         function App() {
             const [showCalories, setShowCalories] = useState(true);
             const [isEditMode, setIsEditMode] = useState(false);
             const [people, setPeople] = useState(1);
-            const [templates, setTemplates] = useState(DEFAULT_TEMPLATES);
-            const [activeTemplateId, setActiveTemplateId] = useState('sushiro');
-            const [serviceRate, setServiceRate] = useState(0.1);
-            const [plates, setPlates] = useState(DEFAULT_TEMPLATES[0].plates);
+            const [plates, setPlates] = useState(DEFAULT_PLATES);
 
-            // 初始化加载存档
+            // 每当页面渲染，就重新刷新一下图标
             useEffect(() => {
-                const saved = localStorage.getItem('sushiro_vibe_storage');
-                if (saved) {
-                    try {
-                        const parsed = JSON.parse(saved);
-                        setTemplates([...DEFAULT_TEMPLATES, ...parsed]);
-                    } catch (e) {}
+                if (window.lucide) {
+                    window.lucide.createIcons();
                 }
-            }, []);
+            });
 
-            // 核心计算
             const totals = useMemo(() => {
                 let sub = 0, count = 0, cals = 0;
-                plates.forEach(p => { sub += p.price * p.count; count += p.count; cals += p.calories * p.count; });
-                const fee = sub * serviceRate;
+                plates.forEach(p => { 
+                    sub += p.price * p.count; 
+                    count += p.count; 
+                    cals += p.calories * p.count; 
+                });
+                const fee = sub * 0.1;
                 const total = sub + fee;
-                return { subtotal: sub, serviceFee: fee, total, totalPlates: count, perPerson: total / people, totalCalories: cals };
-            }, [plates, serviceRate, people]);
+                return { subtotal: sub, total, totalPlates: count, perPerson: total / people, totalCalories: cals };
+            }, [plates, people]);
 
             const updateCount = (id, delta) => setPlates(ps => ps.map(p => p.id === id ? { ...p, count: Math.max(0, p.count + delta) } : p));
             const resetPlates = () => { if(confirm('重置当前盘数？')) setPlates(ps => ps.map(p => ({ ...p, count: 0 }))); setPeople(1); };
 
             return (
-                <div className="min-h-screen bg-slate-50 pb-60 font-sans">
-                    {/* Header */}
+                <div className="min-h-screen pb-60">
                     <div className="sticky top-0 z-30 bg-white shadow-sm p-4 flex justify-between items-center border-b">
                         <div className="flex items-center bg-slate-100 rounded-lg px-2 py-1">
-                            <Store size={16} className="mr-2 text-slate-500"/>
-                            <select 
-                                value={activeTemplateId} 
-                                onChange={(e) => {
-                                    const t = templates.find(x => x.id === e.target.value);
-                                    setActiveTemplateId(t.id); setServiceRate(t.serviceRate); setPlates(t.plates.map(p => ({...p, count: 0})));
-                                }}
-                                className="bg-transparent font-bold text-sm outline-none"
-                            >
-                                {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                            </select>
+                            <i data-lucide="store" className="w-4 h-4 mr-2 text-slate-500"></i>
+                            <span className="font-bold text-sm">寿司郎 Sushiro</span>
                         </div>
-                        <div className="flex gap-1">
-                            <button onClick={resetPlates} className="p-2 text-slate-400 hover:bg-slate-100 rounded-full"><RefreshCcw size={20}/></button>
+                        <div className="flex gap-2">
+                            <button onClick={resetPlates} className="p-2 text-slate-400"><i data-lucide="refresh-ccw" className="w-5 h-5"></i></button>
                             <button onClick={() => setIsEditMode(!isEditMode)} className={`p-2 rounded-full ${isEditMode ? 'bg-slate-800 text-white' : 'text-slate-400'}`}>
-                                {isEditMode ? <Check size={20}/> : <Settings size={20}/>}
+                                {isEditMode ? <i data-lucide="check" className="w-5 h-5"></i> : <i data-lucide="settings" className="w-5 h-5"></i>}
                             </button>
                         </div>
                     </div>
 
-                    {/* Content */}
                     <div className="p-4 space-y-3">
-                        {isEditMode && (
-                            <div className="bg-orange-50 p-4 rounded-xl border border-orange-100 mb-4 animate-pulse-once">
-                                <p className="text-xs font-bold text-orange-600 mb-2 uppercase">编辑模式 / 设置</p>
-                                <div className="flex items-center justify-between text-sm">
-                                    <label className="flex items-center gap-2"><input type="checkbox" checked={showCalories} onChange={e=>setShowCalories(e.target.checked)}/>卡路里模式</label>
-                                    <label className="flex items-center gap-1">服务费 <select value={serviceRate} onChange={e=>setServiceRate(Number(e.target.value))} className="bg-white border rounded">
-                                        <option value={0}>免服务费</option><option value={0.1}>10%</option>
-                                    </select></label>
-                                </div>
-                            </div>
-                        )}
-
                         {plates.map(p => {
                             const theme = COLOR_PALETTE[p.colorIndex];
                             return (
                                 <div key={p.id} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <div onClick={() => isEditMode && updateCount(p.id, 0)} className={`w-10 h-10 rounded-full ${theme.bg} ${theme.border} border-2 shadow-inner`}></div>
+                                        <div className={`w-10 h-10 rounded-full ${theme.bg} ${theme.border} border-2 shadow-inner`}></div>
                                         <div>
                                             <p className="font-bold text-slate-700">{p.name}</p>
-                                            <p className={`font-mono text-sm font-bold ${theme.text}`}>${p.price} {showCalories && <span className="text-orange-300 font-normal ml-2">🔥{p.calories}</span>}</p>
+                                            <p className={`font-mono text-sm font-bold ${theme.text}`}>${p.price}</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3 bg-slate-50 rounded-full p-1 border">
-                                        <button onClick={()=>updateCount(p.id, -1)} className="w-8 h-8 bg-white rounded-full shadow-sm flex items-center justify-center text-slate-500"><Minus size={14}/></button>
+                                        <button onClick={()=>updateCount(p.id, -1)} className="w-8 h-8 bg-white rounded-full shadow-sm flex items-center justify-center text-slate-500"><i data-lucide="minus" className="w-4 h-4"></i></button>
                                         <span className="w-4 text-center font-bold">{p.count}</span>
-                                        <button onClick={()=>updateCount(p.id, 1)} className={`w-8 h-8 rounded-full shadow-sm flex items-center justify-center text-white ${theme.bg === 'bg-white' ? 'bg-slate-800' : theme.bg}`}><Plus size={14}/></button>
+                                        <button onClick={()=>updateCount(p.id, 1)} className={`w-8 h-8 rounded-full shadow-sm flex items-center justify-center text-white ${theme.bg === 'bg-white' ? 'bg-slate-800' : theme.bg}`}><i data-lucide="plus" className="w-4 h-4"></i></button>
                                     </div>
                                 </div>
                             );
                         })}
                     </div>
 
-                    {/* Footer */}
                     <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-6 shadow-2xl rounded-t-3xl z-40">
-                        <div className="flex justify-between items-center mb-4 text-sm font-medium">
-                            <div className="flex flex-col gap-1">
-                                <span className="text-slate-400">总盘数: <span className="text-slate-800">{totals.totalPlates}</span></span>
-                                {showCalories && <span className="text-orange-500 font-bold flex items-center gap-1"><Flame size={14}/>{totals.totalCalories} kcal</span>}
-                            </div>
+                        <div className="flex justify-between items-center mb-4">
+                            <span className="text-orange-500 font-bold flex items-center gap-1"><i data-lucide="flame" className="w-4 h-4"></i>{totals.totalCalories} kcal</span>
                             <div className="flex items-center bg-slate-100 rounded-full p-1 h-10">
-                                <button onClick={()=>setPeople(Math.max(1, people-1))} className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm"><Users size={14}/></button>
-                                <span className="w-8 text-center text-slate-700 font-bold">{people}人</span>
-                                <button onClick={()=>setPeople(people+1)} className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm"><Plus size={14}/></button>
+                                <button onClick={()=>setPeople(Math.max(1, people-1))} className="w-8 h-8 bg-white rounded-full flex items-center justify-center"><i data-lucide="users" className="w-4 h-4 text-slate-400"></i></button>
+                                <span className="w-8 text-center text-slate-700 font-bold">{people}</span>
+                                <button onClick={()=>setPeople(people+1)} className="w-8 h-8 bg-white rounded-full flex items-center justify-center"><i data-lucide="plus" className="w-4 h-4 text-slate-400"></i></button>
                             </div>
                         </div>
                         <div className="flex justify-between items-center">
                             <div>
-                                <p className="text-xs text-slate-400 font-bold uppercase">{people > 1 ? '每人需付 (含加一)' : '总计金额 (含加一)'}</p>
-                                <p className="text-3xl font-black text-slate-800 font-mono">${people > 1 ? totals.perPerson.toFixed(1) : Math.round(totals.total)}</p>
+                                <p className="text-xs text-slate-400 font-bold uppercase">总计 (含加一)</p>
+                                <p className="text-3xl font-black text-slate-800 font-mono">${Math.round(totals.total)}</p>
                             </div>
-                            <button className="bg-red-600 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-red-100 active:scale-95 transition-all">
-                                <Receipt size={18}/> {people > 1 ? 'AA分账' : '买单'}
+                            <button className="bg-red-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2">
+                                <i data-lucide="receipt" className="w-5 h-5"></i> 买单
                             </button>
                         </div>
                     </div>
