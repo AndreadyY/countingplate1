@@ -3,72 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>寿司计算器-原生丝滑版</title>
+    <title>数数盘子吧</title>
     <style>
         :root { --red: #ef4444; --slate: #1e293b; --bg: #f8fafc; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: sans-serif; }
-        body { background: var(--bg); margin: 0; padding-bottom: 180px; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, sans-serif; }
+        body { background: var(--bg); margin: 0; padding-bottom: 200px; }
         .header { background: white; padding: 16px; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 20; display: flex; justify-content: space-between; align-items: center; }
         .title { font-size: 18px; font-weight: 900; color: var(--slate); }
-        .controls-top { display: flex; gap: 8px; }
-        .toggle-btn { border: none; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer; }
-        .toggle-on { background: #dcfce7; color: #166534; }
-        .toggle-off { background: #f1f5f9; color: #94a3b8; }
-        .card { background: white; margin: 12px; padding: 16px; border-radius: 20px; display: flex; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); border: 1px solid #f1f5f9; }
-        .plate { width: 44px; height: 44px; border-radius: 50%; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.1); border: 2px solid white; }
-        .info { flex: 1; margin-left: 12px; }
-        .name { font-weight: bold; color: #334155; font-size: 15px; }
-        .price { color: #94a3b8; font-size: 12px; margin-top: 2px; font-family: monospace; }
+        .toggle-group { display: flex; gap: 6px; }
+        .tgl { border: none; padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .tgl-on { background: #dcfce7; color: #166534; }
+        .tgl-off { background: #f1f5f9; color: #94a3b8; }
+        /* 核心盘子列表样式 */
+        .card { background: white; margin: 12px; padding: 16px; border-radius: 20px; display: flex; align-items: center; border: 1px solid #f1f5f9; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01); }
+        .plate-img { width: 50px; height: 50px; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); flex-shrink: 0; }
+        .info { flex: 1; margin-left: 15px; }
+        .name { font-weight: bold; color: #334155; font-size: 16px; }
+        .price { color: #94a3b8; font-size: 13px; font-family: monospace; }
         .counter { display: flex; align-items: center; background: #f8fafc; border-radius: 99px; padding: 4px; border: 1px solid #f1f5f9; }
-        .btn { width: 36px; height: 36px; border-radius: 50%; border: none; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.1s; }
-        .btn:active { transform: scale(0.9); }
-        .btn-minus { background: white; color: #64748b; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .btn-plus { background: var(--slate); color: white; }
-        .count-val { width: 30px; text-align: center; font-weight: bold; color: var(--slate); }
-        .footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 20px; border-top: 1px solid #e2e8f0; border-radius: 24px 24px 0 0; box-shadow: 0 -10px 20px rgba(0,0,0,0.05); z-index: 30; }
-        .summary-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .cal-box { color: #f97316; font-size: 11px; font-weight: bold; }
-        .people-box { display: flex; align-items: center; background: #f1f5f9; border-radius: 99px; padding: 2px; }
-        .p-btn { width: 28px; height: 28px; border-radius: 50%; border: none; background: white; font-size: 14px; }
-        .total-section { display: flex; justify-content: space-between; align-items: flex-end; }
-        .total-price { font-size: 36px; font-weight: 900; font-family: monospace; color: var(--slate); letter-spacing: -1px; }
-        .total-label { font-size: 10px; color: #94a3b8; font-weight: bold; margin-bottom: 4px; }
-        .reset-link { color: #cbd5e1; font-size: 12px; text-decoration: none; border: none; background: none; margin-left: 10px;}
+        .btn { width: 38px; height: 38px; border-radius: 50%; border: none; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.1s; }
+        .btn-minus { background: white; color: #64748b; }
+        .btn-plus { color: white; }
+        .count-num { width: 35px; text-align: center; font-weight: 800; color: var(--slate); font-size: 16px; }
+        /* 底部结算栏 */
+        .footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 24px; border-top: 1px solid #e2e8f0; border-radius: 28px 28px 0 0; box-shadow: 0 -10px 25px rgba(0,0,0,0.05); z-index: 30; }
+        .summary { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .total-val { font-size: 40px; font-weight: 900; font-family: monospace; color: var(--slate); }
+        .checkout { background: var(--red); color: white; border: none; padding: 14px 28px; border-radius: 16px; font-weight: bold; font-size: 16px; box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3); }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="title">🍣 寿司计算器</div>
-        <div class="controls-top">
-            <button id="feeBtn" class="toggle-btn toggle-on" onclick="toggleFee()">10%服务费:开</button>
-            <button id="calBtn" class="toggle-btn toggle-on" onclick="toggleCal()">卡路里:显</button>
-            <button class="reset-link" onclick="resetAll()">重置</button>
+        <div class="toggle-group">
+            <button id="feeTgl" class="tgl tgl-on" onclick="handleFee()">加一:开</button>
+            <button id="calTgl" class="tgl tgl-on" onclick="handleCal()">卡路里:显</button>
         </div>
     </div>
 
-    <div id="list"></div>
+    <div id="container"></div>
 
     <div class="footer">
-        <div class="summary-row">
-            <div id="totalCals" class="cal-box">🔥 预计摄入: 0 kcal</div>
-            <div class="people-box">
-                <button class="p-btn" onclick="updatePeople(-1)">-</button>
-                <span id="peopleVal" style="padding:0 10px; font-weight:bold; font-size:13px;">1人</span>
-                <button class="p-btn" onclick="updatePeople(1)">+</button>
+        <div class="summary">
+            <div id="calTotal" style="color:#f97316; font-size:12px; font-weight:bold;">🔥 0 kcal</div>
+            <div style="display:flex; align-items:center; background:#f1f5f9; border-radius:99px; padding:3px;">
+                <button class="btn" style="width:28px; height:28px; font-size:14px; background:white;" onclick="changePeople(-1)">-</button>
+                <span id="peopleNum" style="padding:0 12px; font-weight:bold; font-size:14px;">1人</span>
+                <button class="btn" style="width:28px; height:28px; font-size:14px; background:white;" onclick="changePeople(1)">+</button>
             </div>
         </div>
-        <div class="total-section">
+        <div style="display:flex; justify-content:space-between; align-items:flex-end;">
             <div>
-                <div id="totalLabel" class="total-label">总计金额 (含服务费)</div>
-                <div id="totalPrice" class="total-price">$0</div>
+                <div id="totalLabel" style="font-size:10px; color:#94a3b8; font-weight:bold; margin-bottom:5px;">总计金额 (含服务费)</div>
+                <div id="totalPrice" class="total-val">$0</div>
             </div>
-            <button style="background:var(--red); color:white; border:none; padding:12px 24px; border-radius:14px; font-weight:bold;" onclick="alert('开饭成功！')">买单</button>
+            <button class="checkout" onclick="location.reload()">重置</button>
         </div>
     </div>
 
     <script>
-        let plates = [
+        // 核心数据：大厨把食材找回来了！
+        let data = [
             { id: 1, name: '红盘', price: 12, cals: 120, color: '#ef4444', count: 0 },
-            { id: 2, name: '银盘', price: 17, cals: 150, color: '#cbd5e1', count: 0 },
+            { id: 2, name: '银盘', price: 17, cals: 150, color: '#94a3b8', count: 0 },
             { id: 3, name: '金盘', price: 22, cals: 180, color: '#fbbf24', count: 0 },
-            { id: 4, name
+            { id: 4, name: '黑盘', price: 27, cals: 200, color: '#0f172a', count: 0 },
+            { id: 5, name: '特选', price: 32, cals: 250, color: '#6366f1', count: 0 }
+        ];
+        let hasFee = true;
+        let showC = true;
+        let pCount = 1;
+
+        function renderList() {
+            const container = document.getElementById('container');
+            // 确保这里循环生成 HTML
+            container.innerHTML = data.map(item => `
+                <div class="card">
+                    <div class="plate-img" style="background: ${item.color}"></div>
+                    <div class="info">
+                        <div class="name">${item.name}</div>
+                        <div class="price">$${item.price} ${showC ? '<span style="color:#fdba74;margin-left:8px;">🔥'+item.cals+'</span>' : ''}</div>
+                    </div>
+                    <div class="counter">
+                        <button class="btn btn-minus" onclick="changeCount(${item.id}, -1)">-</button>
+                        <div class="count-num">${item.count}</div>
+                        <button class="btn btn-plus" style="background:${item.color}" onclick="changeCount(${item.id}, 1)">+</button>
+                    </div>
+                </div>
+            `).join('');
+
+            // 计算总数
+            let subtotal = data.reduce((s, i) => s + (i.price * i.count), 0);
+            let cals = data.reduce((s, i) => s + (i.cals * i.count), 0);
+            let final = hasFee ? subtotal * 1.1 : subtotal;
+            
+            document.getElementById('totalPrice').innerText = '$' + (final / pCount).toFixed(1);
+            document.getElementById('calTotal').innerText = showC ? `🔥 摄入总量: ${cals} kcal` : '';
+            document.getElementById('totalLabel').innerText = pCount > 1 ? `每人应付 (${pCount}人AA)` : '总计金额 (含服务费)';
+        }
+
+        function changeCount(id, delta) {
+            const target = data.find(i => i.id === id);
+            target.count = Math.max(0, target.count + delta);
+            renderList();
+        }
+
+        function changePeople(delta) {
+            pCount = Math.max(1, pCount + delta);
+            document.getElementById('peopleNum').innerText = pCount + '人';
+            renderList();
+        }
+
+        function handleFee() {
+            hasFee = !hasFee;
+            document.getElementById('feeTgl').innerText = `加一:${hasFee ? '开' : '关'}`;
+            document.getElementById('feeTgl').className = `tgl ${hasFee ? 'tgl-on' : 'tgl-off'}`;
+            renderList();
+        }
+
+        function handleCal() {
+            showC = !showC;
+            document.getElementById('calTgl').innerText = `卡路里:${showC ? '显' : '隐'}`;
+            document.getElementById('calTgl').className = `tgl ${showC ? 'tgl-on' : 'tgl-off'}`;
+            renderList();
+        }
+
+        // 页面加载完立即执行一次
+        renderList();
+    </script>
+</body>
+</html>
