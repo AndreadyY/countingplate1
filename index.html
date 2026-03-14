@@ -3,60 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>寿司计算器 - 稳定增强版</title>
-    
-    <script src="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/react/18.2.0/umd/react.production.min.js"></script>
-    <script src="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-    <script src="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/babel-standalone/6.26.0/babel.min.js"></script>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-
+    <title>寿司计算器-原生丝滑版</title>
     <style>
-        * { -webkit-tap-highlight-color: transparent; }
-        body { background-color: #f8fafc; margin: 0; }
-        .active-scale:active { transform: scale(0.95); transition: 0.1s; }
+        :root { --red: #ef4444; --slate: #1e293b; --bg: #f8fafc; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: sans-serif; }
+        body { background: var(--bg); margin: 0; padding-bottom: 180px; }
+        .header { background: white; padding: 16px; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 20; display: flex; justify-content: space-between; align-items: center; }
+        .title { font-size: 18px; font-weight: 900; color: var(--slate); }
+        .controls-top { display: flex; gap: 8px; }
+        .toggle-btn { border: none; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer; }
+        .toggle-on { background: #dcfce7; color: #166534; }
+        .toggle-off { background: #f1f5f9; color: #94a3b8; }
+        .card { background: white; margin: 12px; padding: 16px; border-radius: 20px; display: flex; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); border: 1px solid #f1f5f9; }
+        .plate { width: 44px; height: 44px; border-radius: 50%; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.1); border: 2px solid white; }
+        .info { flex: 1; margin-left: 12px; }
+        .name { font-weight: bold; color: #334155; font-size: 15px; }
+        .price { color: #94a3b8; font-size: 12px; margin-top: 2px; font-family: monospace; }
+        .counter { display: flex; align-items: center; background: #f8fafc; border-radius: 99px; padding: 4px; border: 1px solid #f1f5f9; }
+        .btn { width: 36px; height: 36px; border-radius: 50%; border: none; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.1s; }
+        .btn:active { transform: scale(0.9); }
+        .btn-minus { background: white; color: #64748b; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .btn-plus { background: var(--slate); color: white; }
+        .count-val { width: 30px; text-align: center; font-weight: bold; color: var(--slate); }
+        .footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 20px; border-top: 1px solid #e2e8f0; border-radius: 24px 24px 0 0; box-shadow: 0 -10px 20px rgba(0,0,0,0.05); z-index: 30; }
+        .summary-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .cal-box { color: #f97316; font-size: 11px; font-weight: bold; }
+        .people-box { display: flex; align-items: center; background: #f1f5f9; border-radius: 99px; padding: 2px; }
+        .p-btn { width: 28px; height: 28px; border-radius: 50%; border: none; background: white; font-size: 14px; }
+        .total-section { display: flex; justify-content: space-between; align-items: flex-end; }
+        .total-price { font-size: 36px; font-weight: 900; font-family: monospace; color: var(--slate); letter-spacing: -1px; }
+        .total-label { font-size: 10px; color: #94a3b8; font-weight: bold; margin-bottom: 4px; }
+        .reset-link { color: #cbd5e1; font-size: 12px; text-decoration: none; border: none; background: none; margin-left: 10px;}
     </style>
 </head>
 <body>
-    <div id="root">
-        <div class="flex items-center justify-center h-screen text-slate-400 animate-pulse">
-            🍣 正在极速备餐中...
+    <div class="header">
+        <div class="title">🍣 寿司计算器</div>
+        <div class="controls-top">
+            <button id="feeBtn" class="toggle-btn toggle-on" onclick="toggleFee()">10%服务费:开</button>
+            <button id="calBtn" class="toggle-btn toggle-on" onclick="toggleCal()">卡路里:显</button>
+            <button class="reset-link" onclick="resetAll()">重置</button>
         </div>
     </div>
 
-    <script type="text/babel">
-        const { useState, useMemo } = React;
+    <div id="list"></div>
 
-        const INITIAL_PLATES = [
-            { id: 1, name: '红盘', price: 12, calories: 120, color: 'bg-red-500', count: 0 },
-            { id: 2, name: '银盘', price: 17, calories: 150, color: 'bg-slate-300', count: 0 },
-            { id: 3, name: '金盘', price: 22, calories: 180, color: 'bg-yellow-400', count: 0 },
-            { id: 4, name: '黑盘', price: 27, calories: 200, color: 'bg-slate-900', count: 0 },
-            { id: 5, name: '特选', price: 32, calories: 250, color: 'bg-indigo-600', count: 0 },
-        ];
+    <div class="footer">
+        <div class="summary-row">
+            <div id="totalCals" class="cal-box">🔥 预计摄入: 0 kcal</div>
+            <div class="people-box">
+                <button class="p-btn" onclick="updatePeople(-1)">-</button>
+                <span id="peopleVal" style="padding:0 10px; font-weight:bold; font-size:13px;">1人</span>
+                <button class="p-btn" onclick="updatePeople(1)">+</button>
+            </div>
+        </div>
+        <div class="total-section">
+            <div>
+                <div id="totalLabel" class="total-label">总计金额 (含服务费)</div>
+                <div id="totalPrice" class="total-price">$0</div>
+            </div>
+            <button style="background:var(--red); color:white; border:none; padding:12px 24px; border-radius:14px; font-weight:bold;" onclick="alert('开饭成功！')">买单</button>
+        </div>
+    </div>
 
-        function App() {
-            const [plates, setPlates] = useState(INITIAL_PLATES);
-            const [people, setPeople] = useState(1);
-            const [hasServiceFee, setHasServiceFee] = useState(true);
-            const [showCals, setShowCals] = useState(true);
-
-            const totals = useMemo(() => {
-                const subtotal = plates.reduce((s, p) => s + (p.price * p.count), 0);
-                const calories = plates.reduce((s, p) => s + (p.calories * p.count), 0);
-                const tax = hasServiceFee ? subtotal * 0.1 : 0;
-                const total = subtotal + tax;
-                return { total, calories, perPerson: total / people };
-            }, [plates, people, hasServiceFee]);
-
-            const update = (id, delta) => {
-                setPlates(prev => prev.map(p => p.id === id ? {...p, count: Math.max(0, p.count + delta)} : p));
-            };
-
-            return (
-                <div className="min-h-screen pb-44">
-                    {/* Header */}
-                    <div className="bg-white p-4 shadow-sm sticky top-0 z-20 flex justify-between items-center border-b">
-                        <div className="flex flex-col">
-                            <h1 className="font-black text-lg text-slate-800">🍣 寿司计算器</h1>
-                            <div className="flex
+    <script>
+        let plates = [
+            { id: 1, name: '红盘', price: 12, cals: 120, color: '#ef4444', count: 0 },
+            { id: 2, name: '银盘', price: 17, cals: 150, color: '#cbd5e1', count: 0 },
+            { id: 3, name: '金盘', price: 22, cals: 180, color: '#fbbf24', count: 0 },
+            { id: 4, name
