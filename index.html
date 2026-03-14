@@ -7,129 +7,210 @@
     <style>
         :root { --red: #ef4444; --slate: #1e293b; --bg: #f8fafc; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, sans-serif; }
-        body { background: var(--bg); margin: 0; padding-bottom: 200px; }
-        .header { background: white; padding: 16px; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 20; display: flex; justify-content: space-between; align-items: center; }
-        .title { font-size: 18px; font-weight: 900; color: var(--slate); }
-        .toggle-group { display: flex; gap: 6px; }
-        .tgl { border: none; padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .tgl-on { background: #dcfce7; color: #166534; }
-        .tgl-off { background: #f1f5f9; color: #94a3b8; }
-        /* 核心盘子列表样式 */
-        .card { background: white; margin: 12px; padding: 16px; border-radius: 20px; display: flex; align-items: center; border: 1px solid #f1f5f9; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01); }
-        .plate-img { width: 50px; height: 50px; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); flex-shrink: 0; }
-        .info { flex: 1; margin-left: 15px; }
-        .name { font-weight: bold; color: #334155; font-size: 16px; }
-        .price { color: #94a3b8; font-size: 13px; font-family: monospace; }
-        .counter { display: flex; align-items: center; background: #f8fafc; border-radius: 99px; padding: 4px; border: 1px solid #f1f5f9; }
-        .btn { width: 38px; height: 38px; border-radius: 50%; border: none; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.1s; }
-        .btn-minus { background: white; color: #64748b; }
-        .btn-plus { color: white; }
-        .count-num { width: 35px; text-align: center; font-weight: 800; color: var(--slate); font-size: 16px; }
-        /* 底部结算栏 */
-        .footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 24px; border-top: 1px solid #e2e8f0; border-radius: 28px 28px 0 0; box-shadow: 0 -10px 25px rgba(0,0,0,0.05); z-index: 30; }
-        .summary { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .total-val { font-size: 40px; font-weight: 900; font-family: monospace; color: var(--slate); }
-        .checkout { background: var(--red); color: white; border: none; padding: 14px 28px; border-radius: 16px; font-weight: bold; font-size: 16px; box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3); }
+        body { background: var(--bg); margin: 0; padding-bottom: 120px; overflow-x: hidden; }
+        
+        /* Header */
+        .header { background: white; padding: 15px; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; }
+        .title { font-weight: 900; color: var(--slate); }
+        .manage-btn { background: #f1f5f9; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; color: #64748b; }
+
+        /* List Area */
+        .card { background: white; margin: 10px; padding: 15px; border-radius: 18px; display: flex; align-items: center; border: 1px solid #f1f5f9; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .plate-dot { width: 40px; height: 40px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); flex-shrink: 0; }
+        .info { flex: 1; margin-left: 12px; }
+        .name { font-weight: bold; color: #334155; }
+        .price-tag { color: #94a3b8; font-size: 12px; }
+        .counter { display: flex; align-items: center; background: #f8fafc; border-radius: 99px; padding: 3px; border: 1px solid #f1f5f9; }
+        .btn { width: 34px; height: 34px; border-radius: 50%; border: none; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+        /* Floating Footer */
+        .footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px 20px; border-top: 1px solid #e2e8f0; border-radius: 20px 20px 0 0; box-shadow: 0 -8px 20px rgba(0,0,0,0.05); z-index: 100; cursor: pointer; }
+        .summary-bar { display: flex; justify-content: space-between; align-items: flex-end; }
+        .total-money { font-size: 32px; font-weight: 900; color: var(--slate); letter-spacing: -1px; }
+        
+        /* Modal / Overlay */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; padding: 20px; }
+        .modal-content { background: white; border-radius: 24px; max-height: 80vh; overflow-y: auto; padding: 20px; position: relative; }
+        .close-btn { position: absolute; right: 15px; top: 15px; font-size: 24px; color: #cbd5e1; }
+        .modal-title { font-weight: 900; margin-bottom: 20px; color: var(--slate); }
+        
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 12px; font-weight: bold; color: #94a3b8; margin-bottom: 5px; }
+        .input-group input, .input-group select { width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 10px; outline: none; }
+        .action-btn { background: var(--slate); color: white; border: none; width: 100%; padding: 12px; border-radius: 12px; font-weight: bold; margin-top: 10px; }
+        
+        /* Detail List */
+        .detail-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #f1f5f9; align-items: center; }
+        .cal-input { width: 60px; padding: 4px; border: 1px solid #f1f5f9; border-radius: 4px; text-align: center; font-size: 12px; }
     </style>
 </head>
 <body>
+
     <div class="header">
-        <div class="title">🍣 寿司计算器</div>
-        <div class="toggle-group">
-            <button id="feeTgl" class="tgl tgl-on" onclick="handleFee()">加一:开</button>
-            <button id="calTgl" class="tgl tgl-on" onclick="handleCal()">卡路里:显</button>
+        <div class="title">🍣 寿司助手 Pro</div>
+        <button class="manage-btn" onclick="openModal('manage')">⚙️ 管理碟子</button>
+    </div>
+
+    <div id="plateList"></div>
+
+    <div class="footer" onclick="openModal('receipt')">
+        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+            <span id="calText" style="color:#f97316; font-size:12px; font-weight:bold;">🔥 0 kcal</span>
+            <span style="color:#94a3b8; font-size:11px;">点击查看清单 📋</span>
+        </div>
+        <div class="summary-bar">
+            <div>
+                <div style="font-size:10px; color:#94a3b8; font-weight:bold;">总计 (含10%服务费)</div>
+                <div id="totalPrice" class="total-money">$0.0</div>
+            </div>
+            <button class="manage-btn" style="background:var(--red); color:white; padding:10px 20px;" onclick="event.stopPropagation(); resetCounts()">重置</button>
         </div>
     </div>
 
-    <div id="container"></div>
-
-    <div class="footer">
-        <div class="summary">
-            <div id="calTotal" style="color:#f97316; font-size:12px; font-weight:bold;">🔥 0 kcal</div>
-            <div style="display:flex; align-items:center; background:#f1f5f9; border-radius:99px; padding:3px;">
-                <button class="btn" style="width:28px; height:28px; font-size:14px; background:white;" onclick="changePeople(-1)">-</button>
-                <span id="peopleNum" style="padding:0 12px; font-weight:bold; font-size:14px;">1人</span>
-                <button class="btn" style="width:28px; height:28px; font-size:14px; background:white;" onclick="changePeople(1)">+</button>
+    <div id="manageModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('manageModal')">×</span>
+            <div class="modal-title">添加新碟子</div>
+            <div class="input-group">
+                <label>名称 (如：蓝盘)</label>
+                <input type="text" id="newName" placeholder="请输入名称">
             </div>
+            <div class="input-group">
+                <label>价格 ($)</label>
+                <input type="number" id="newPrice" placeholder="请输入价格">
+            </div>
+            <div class="input-group">
+                <label>碟子颜色</label>
+                <input type="color" id="newColor" value="#3b82f6" style="height:44px; padding:2px;">
+            </div>
+            <button class="action-btn" onclick="addNewPlate()">保存碟子</button>
         </div>
-        <div style="display:flex; justify-content:space-between; align-items:flex-end;">
-            <div>
-                <div id="totalLabel" style="font-size:10px; color:#94a3b8; font-weight:bold; margin-bottom:5px;">总计金额 (含服务费)</div>
-                <div id="totalPrice" class="total-val">$0</div>
+    </div>
+
+    <div id="receiptModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('receiptModal')">×</span>
+            <div class="modal-title">已吃清单 (自定义卡路里)</div>
+            <div id="receiptList"></div>
+            <div style="margin-top:20px; padding-top:15px; border-top:2px solid #f1f5f9;">
+                <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                    <span>消费小计:</span>
+                    <span id="subtotalText">$0</span>
+                </div>
             </div>
-            <button class="checkout" onclick="location.reload()">重置</button>
         </div>
     </div>
 
     <script>
-        // 核心数据：大厨把食材找回来了！
-        let data = [
+        // 初始数据
+        let plates = JSON.parse(localStorage.getItem('sushi_plates')) || [
             { id: 1, name: '红盘', price: 12, cals: 120, color: '#ef4444', count: 0 },
             { id: 2, name: '银盘', price: 17, cals: 150, color: '#94a3b8', count: 0 },
-            { id: 3, name: '金盘', price: 22, cals: 180, color: '#fbbf24', count: 0 },
-            { id: 4, name: '黑盘', price: 27, cals: 200, color: '#0f172a', count: 0 },
-            { id: 5, name: '特选', price: 32, cals: 250, color: '#6366f1', count: 0 }
+            { id: 3, name: '金盘', price: 22, cals: 180, color: '#fbbf24', count: 0 }
         ];
-        let hasFee = true;
-        let showC = true;
-        let pCount = 1;
 
-        function renderList() {
-            const container = document.getElementById('container');
-            // 确保这里循环生成 HTML
-            container.innerHTML = data.map(item => `
+        function render() {
+            // 渲染主列表
+            const list = document.getElementById('plateList');
+            list.innerHTML = plates.map(p => `
                 <div class="card">
-                    <div class="plate-img" style="background: ${item.color}"></div>
+                    <div class="plate-dot" style="background:${p.color}"></div>
                     <div class="info">
-                        <div class="name">${item.name}</div>
-                        <div class="price">$${item.price} ${showC ? '<span style="color:#fdba74;margin-left:8px;">🔥'+item.cals+'</span>' : ''}</div>
+                        <div class="name">${p.name}</div>
+                        <div class="price-tag">$${p.price} · 🔥${p.cals}kcal</div>
                     </div>
                     <div class="counter">
-                        <button class="btn btn-minus" onclick="changeCount(${item.id}, -1)">-</button>
-                        <div class="count-num">${item.count}</div>
-                        <button class="btn btn-plus" style="background:${item.color}" onclick="changeCount(${item.id}, 1)">+</button>
+                        <button class="btn" style="background:white; color:#94a3b8" onclick="update(${p.id}, -1)">-</button>
+                        <div style="width:30px; text-align:center; font-weight:bold;">${p.count}</div>
+                        <button class="btn" style="background:${p.color}; color:white" onclick="update(${p.id}, 1)">+</button>
                     </div>
                 </div>
             `).join('');
 
-            // 计算总数
-            let subtotal = data.reduce((s, i) => s + (i.price * i.count), 0);
-            let cals = data.reduce((s, i) => s + (i.cals * i.count), 0);
-            let final = hasFee ? subtotal * 1.1 : subtotal;
+            // 计算总额
+            let subtotal = plates.reduce((s, p) => s + (p.price * p.count), 0);
+            let totalCals = plates.reduce((s, p) => s + (p.cals * p.count), 0);
+            document.getElementById('totalPrice').innerText = '$' + (subtotal * 1.1).toFixed(1);
+            document.getElementById('calText').innerText = `🔥 摄入总量: ${totalCals} kcal`;
             
-            document.getElementById('totalPrice').innerText = '$' + (final / pCount).toFixed(1);
-            document.getElementById('calTotal').innerText = showC ? `🔥 摄入总量: ${cals} kcal` : '';
-            document.getElementById('totalLabel').innerText = pCount > 1 ? `每人应付 (${pCount}人AA)` : '总计金额 (含服务费)';
+            // 存入缓存
+            localStorage.setItem('sushi_plates', JSON.stringify(plates));
         }
 
-        function changeCount(id, delta) {
-            const target = data.find(i => i.id === id);
-            target.count = Math.max(0, target.count + delta);
-            renderList();
+        function update(id, delta) {
+            const p = plates.find(x => x.id === id);
+            p.count = Math.max(0, p.count + delta);
+            render();
         }
 
-        function changePeople(delta) {
-            pCount = Math.max(1, pCount + delta);
-            document.getElementById('peopleNum').innerText = pCount + '人';
-            renderList();
+        function resetCounts() {
+            if(confirm('确定要清空今天的碟子吗？')) {
+                plates.forEach(p => p.count = 0);
+                render();
+            }
         }
 
-        function handleFee() {
-            hasFee = !hasFee;
-            document.getElementById('feeTgl').innerText = `加一:${hasFee ? '开' : '关'}`;
-            document.getElementById('feeTgl').className = `tgl ${hasFee ? 'tgl-on' : 'tgl-off'}`;
-            renderList();
+        // 弹窗管理
+        function openModal(type) {
+            if(type === 'manage') {
+                document.getElementById('manageModal').style.display = 'block';
+            } else {
+                const rList = document.getElementById('receiptList');
+                const eaten = plates.filter(p => p.count > 0);
+                if(eaten.length === 0) {
+                    rList.innerHTML = '<div style="color:#cbd5e1; text-align:center; padding:20px;">空空如也，还没开始吃呢~</div>';
+                } else {
+                    rList.innerHTML = eaten.map(p => `
+                        <div class="detail-item">
+                            <div>
+                                <span style="font-weight:bold;">${p.name}</span>
+                                <span style="color:#94a3b8; font-size:12px;"> × ${p.count}</span>
+                            </div>
+                            <div>
+                                <input type="number" class="cal-input" value="${p.cals}" onchange="updateCal(${p.id}, this.value)">
+                                <span style="font-size:10px; color:#94a3b8;">kcal</span>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                let sub = plates.reduce((s, p) => s + (p.price * p.count), 0);
+                document.getElementById('subtotalText').innerText = '$' + sub;
+                document.getElementById('receiptModal').style.display = 'block';
+            }
         }
 
-        function handleCal() {
-            showC = !showC;
-            document.getElementById('calTgl').innerText = `卡路里:${showC ? '显' : '隐'}`;
-            document.getElementById('calTgl').className = `tgl ${showC ? 'tgl-on' : 'tgl-off'}`;
-            renderList();
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
         }
 
-        // 页面加载完立即执行一次
-        renderList();
+        // 自定义功能
+        function addNewPlate() {
+            const name = document.getElementById('newName').value;
+            const price = document.getElementById('newPrice').value;
+            const color = document.getElementById('newColor').value;
+            if(!name || !price) return alert('请填全信息');
+            
+            plates.push({
+                id: Date.now(),
+                name: name,
+                price: Number(price),
+                cals: 150, // 默认
+                color: color,
+                count: 0
+            });
+            render();
+            closeModal('manageModal');
+            document.getElementById('newName').value = '';
+            document.getElementById('newPrice').value = '';
+        }
+
+        function updateCal(id, val) {
+            const p = plates.find(x => x.id === id);
+            p.cals = Number(val);
+            render();
+        }
+
+        render();
     </script>
 </body>
 </html>
